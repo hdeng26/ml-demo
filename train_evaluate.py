@@ -2,7 +2,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -54,6 +54,10 @@ print(cm)
 # Print classification report
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
+
+# Calculate overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Overall accuracy: {accuracy:.2f}")
 
 # Save the confusion matrix to a CSV file
 pd.DataFrame(cm, index=iris.target_names, columns=iris.target_names).to_csv('confusion_matrix.csv', index=True)
