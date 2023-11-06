@@ -63,9 +63,9 @@ jobs:
         body: |
           This PR adds the latest confusion matrix image and accuracy results.
     
-          ![Confusion Matrix](./confusion_matrix.png?raw=true)
+          ![Confusion Matrix](https://github.com/strollingorange/ml-demo/blob/new-branch/confusion_matrix.png)
           
-          Overall Accuracy: ${{ env.ACCURACY }}
+          ${{ env.ACCURACY }}
         branch: main
         branch-suffix: timestamp
 
