@@ -49,8 +49,12 @@ jobs:
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: git push origin new-branch
     
+    - name: Read accuracy file
+      id: accuracy
+      run: |
+        echo "ACCURACY=$(cat accuracy.txt)" >> $GITHUB_ENV
+    
     - name: Create Pull Request
-      if: steps.check_branch.outputs.branch_exists == 'false'
       uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -58,7 +62,10 @@ jobs:
         title: Confusion Matrix and Accuracy Results
         body: |
           This PR adds the latest confusion matrix image and accuracy results.
-          ![Confusion Matrix](confusion_matrix.png)
-          `Overall Accuracy: $(cat accuracy.txt)`
+    
+          ![Confusion Matrix](./confusion_matrix.png?raw=true)
+          
+          Overall Accuracy: ${{ env.ACCURACY }}
         branch: main
         branch-suffix: timestamp
+
