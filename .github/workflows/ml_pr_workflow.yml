@@ -49,19 +49,24 @@ jobs:
     - name: Push changes
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: git push origin new-branch
+
+    - name: Create report.md
+      run: |
+        echo "## Model Accuracy Report" > report.md
+        echo "Overall Accuracy: $(cat accuracy.txt)" >> report.md
+        echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
     
     - name: Publish confusion matrix
       run: |
-        echo "![Confusion Matrix](confusion_matrix.png)" > report.md
-        cat accuracy.txt >> report.md
-        cml comment report.md
+        cml-publish confusion_matrix.png --md >> report.md
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Add accuracy to report
+    
+    - name: Create CML report comment
       run: |
-        echo "## Model Accuracy" >> report.md
-        cat accuracy.txt >> report.md
+        cml comment create report.md
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Commit and push if new branch
       if: steps.check_branch.outputs.branch_exists == 'false'
