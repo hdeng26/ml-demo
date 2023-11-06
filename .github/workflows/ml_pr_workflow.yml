@@ -18,6 +18,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install scikit-learn pandas matplotlib seaborn
+        npm install -g @dvcorg/cml
     
     - name: Train and evaluate model
       run: |
@@ -49,23 +50,33 @@ jobs:
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: git push origin new-branch
     
-    - name: Read accuracy file
-      id: accuracy
+    - name: Publish confusion matrix
       run: |
-        echo "ACCURACY=$(cat accuracy.txt)" >> $GITHUB_ENV
-    
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: Add confusion matrix and accuracy results
-        title: Confusion Matrix and Accuracy Results
-        body: |
-          This PR adds the latest confusion matrix image and accuracy results.
-    
-          ![Confusion Matrix](https://github.com/strollingorange/ml-demo/blob/new-branch/confusion_matrix.png)
-          
-          ${{ env.ACCURACY }}
-        branch: main
-        branch-suffix: timestamp
+        cml-publish confusion_matrix.png --md >> report.md
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Add accuracy to report
+      run: |
+        echo "## Model Accuracy" >> report.md
+        cat accuracy.txt >> report.md
+
+    - name: Commit and push if new branch
+      if: steps.check_branch.outputs.branch_exists == 'false'
+      run: |
+        git add report.md confusion_matrix.png accuracy.txt
+        git commit -m "Add confusion matrix and accuracy results"
+        git push origin new-branch
+
+    - name: Create Pull Request
+      if: steps.check_branch.outputs.branch_exists == 'false'
+      uses: repo-sync/pull-request@v2
+      with:
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Send CML report as PR comment
+      run: |
+        cml-send-comment report.md
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
