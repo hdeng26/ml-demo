@@ -1,2 +1,2 @@
 # ml-demo
-machine learning workflow confusion matrix demo with sklearn
+This repo is a demo of presenting a confusion matrix workflow (with pull request) when pushing a task.
