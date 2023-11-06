@@ -1,0 +1,43 @@
+name: ML Demo - Train, Evaluate, and PR
+
+on: [push]
+
+jobs:
+  train-and-create-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas matplotlib seaborn
+    
+    - name: Train and evaluate model
+      run: |
+        python train_evaluate.py
+        
+    - name: Commit and push confusion matrix image and accuracy result
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git checkout -b new-branch
+        git add confusion_matrix.png
+        echo "Overall accuracy: $(python -c 'from train_evaluate import accuracy; print(accuracy)')" > accuracy.txt
+        git add accuracy.txt
+        git commit -m "Add confusion matrix and accuracy results"
+        git push origin new-branch
+    
+    - name: Create Pull Request
+      uses: repo-sync/pull-request@v3
+      with:
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Confusion Matrix and Accuracy Results"
+        pr_body: "This PR adds the latest confusion matrix image and accuracy results."
