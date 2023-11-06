@@ -50,23 +50,16 @@ jobs:
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: git push origin new-branch
 
-    - name: Create report.md
+    - name: Create or Update CML Report
       run: |
         echo "## Model Accuracy Report" > report.md
         echo "Overall Accuracy: $(cat accuracy.txt)" >> report.md
         echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
-    
-    - name: Publish confusion matrix
-      run: |
-        echo "![Confusion Matrix](confusion_matrix.png)" > report.md
-        cat accuracy.txt >> report.md
-        cml comment report.md
-      env:
-        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Create CML report comment
-      run: |
-        cml comment create report.md
+        if git ls-remote --heads origin new-branch | grep new-branch; then
+          cml send-comment report.md --commit-sha HEAD --update
+        else
+          cml send-comment report.md --commit-sha HEAD
+        fi
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -83,9 +76,3 @@ jobs:
       with:
         destination_branch: "main"
         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Send CML report as PR comment
-      run: |
-        cml-send-comment report.md
-      env:
-        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
