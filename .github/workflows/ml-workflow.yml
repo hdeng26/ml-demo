@@ -22,9 +22,3 @@ jobs:
     - name: Train and evaluate model
       run: |
         python train_evaluate.py
-        
-    - name: Upload confusion matrix as an artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: confusion-matrix
-        path: ./confusion_matrix.csv
