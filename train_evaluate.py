@@ -4,6 +4,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Print the confusion matrix in a nicer format
 def print_confusion_matrix(conf_matrix, class_names):
@@ -11,6 +13,15 @@ def print_confusion_matrix(conf_matrix, class_names):
     df_cm = pd.DataFrame(conf_matrix, index=class_names, columns=class_names)
     print(df_cm)
 
+# Generate confusion matrix plot
+def plot_confusion_matrix(conf_matrix, class_names, filepath='confusion_matrix.png'):
+    plt.figure(figsize=(10,7))
+    sns.heatmap(conf_matrix, annot=True, fmt='d',
+                xticklabels=class_names, yticklabels=class_names, cmap='Blues')
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.title('Confusion Matrix')
+    plt.savefig(filepath)
 
 # Load Iris dataset
 iris = datasets.load_iris()
@@ -51,3 +62,6 @@ print("Confusion matrix saved to 'confusion_matrix.csv'")
 
 # Now use the function to print your confusion matrix
 print_confusion_matrix(cm, iris.target_names)
+
+# Now generate and save the confusion matrix plot
+plot_confusion_matrix(cm, iris.target_names)
