@@ -5,6 +5,13 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 import pandas as pd
 
+# Print the confusion matrix in a nicer format
+def print_confusion_matrix(conf_matrix, class_names):
+    """Prints the confusion matrix as a table with class names for better readability."""
+    df_cm = pd.DataFrame(conf_matrix, index=class_names, columns=class_names)
+    print(df_cm)
+
+
 # Load Iris dataset
 iris = datasets.load_iris()
 X, y = iris.data, iris.target
@@ -41,3 +48,6 @@ print(classification_report(y_test, y_pred))
 pd.DataFrame(cm, index=iris.target_names, columns=iris.target_names).to_csv('confusion_matrix.csv', index=True)
 
 print("Confusion matrix saved to 'confusion_matrix.csv'")
+
+# Now use the function to print your confusion matrix
+print_confusion_matrix(cm, iris.target_names)
