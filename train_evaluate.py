@@ -59,10 +59,14 @@ print(classification_report(y_test, y_pred))
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Overall accuracy: {accuracy:.2f}")
 
+# Save the overall accuracy to a text file
+with open('accuracy.txt', 'w') as f:
+    f.write(f"Overall accuracy: {accuracy:.2f}\n")
+
 # Save the confusion matrix to a CSV file
 pd.DataFrame(cm, index=iris.target_names, columns=iris.target_names).to_csv('confusion_matrix.csv', index=True)
 
-print("Confusion matrix saved to 'confusion_matrix.csv'")
+print("Confusion matrix and accuracy results have been saved to 'confusion_matrix.csv' and 'accuracy.txt' respectively.")
 
 # Now use the function to print your confusion matrix
 print_confusion_matrix(cm, iris.target_names)
