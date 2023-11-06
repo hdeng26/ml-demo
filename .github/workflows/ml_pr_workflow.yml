@@ -23,18 +23,34 @@ jobs:
       run: |
         python train_evaluate.py
         
-    - name: Commit and push confusion matrix image and accuracy result
+    - name: Check for existing branch
+      id: check_branch
+      run: |
+        if git ls-remote --heads origin new-branch | grep new-branch; then
+          echo "Branch already exists"
+          echo "::set-output name=branch_exists::true"
+        else
+          echo "Branch does not exist"
+          echo "::set-output name=branch_exists::false"
+        fi
+    
+    - name: Checkout to branch
+      if: steps.check_branch.outputs.branch_exists == 'false'
+      run: git checkout -b new-branch
+    
+    - name: Add and commit confusion matrix image and accuracy result
       run: |
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
-        git checkout -b new-branch
-        git add confusion_matrix.png
-        echo "Overall accuracy: $(python -c 'from train_evaluate import accuracy; print(accuracy)')" > accuracy.txt
-        git add accuracy.txt
-        git commit -m "Add confusion matrix and accuracy results"
-        git push origin new-branch
+        git add confusion_matrix.png accuracy.txt
+        git commit -m "Add confusion matrix and accuracy results" || echo "No changes to commit"
+    
+    - name: Push changes
+      if: steps.check_branch.outputs.branch_exists == 'false'
+      run: git push origin new-branch
     
     - name: Create Pull Request
+      if: steps.check_branch.outputs.branch_exists == 'false'
       uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -42,5 +58,10 @@ jobs:
         title: Confusion Matrix and Accuracy Results
         body: |
           This PR adds the latest confusion matrix image and accuracy results.
+          ![Confusion Matrix](confusion_matrix.png)
+          **Overall Accuracy:**
+          ```
+          $(cat accuracy.txt)
+          ```
         branch: main
         branch-suffix: timestamp
