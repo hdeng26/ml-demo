@@ -21,9 +21,8 @@ jobs:
         npm install -g @dvcorg/cml
     
     - name: Train and evaluate model
-      run: |
-        python train_evaluate.py
-        
+      run: python train_evaluate.py  # Make sure this generates confusion_matrix.png and accuracy.txt
+    
     - name: Check for existing branch
       id: check_branch
       run: |
@@ -44,21 +43,26 @@ jobs:
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         git add confusion_matrix.png accuracy.txt
-        git commit -m "Add confusion matrix and accuracy results" || echo "No changes to commit"
+        git commit -m "Add confusion matrix and accuracy results"
     
     - name: Push changes
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: git push origin new-branch
 
-    - name: Create or Update CML Report
+    - name: Write CML report
       run: |
         echo "## Model Accuracy Report" > report.md
         echo "Overall Accuracy: $(cat accuracy.txt)" >> report.md
         echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: CML report comment
+      run: |
         if git ls-remote --heads origin new-branch | grep new-branch; then
-          cml send-comment report.md --commit-sha HEAD --update
+          cml comment update --publish --commit-sha HEAD --watermark-title="{workflow}" report.md
         else
-          cml send-comment report.md --commit-sha HEAD
+          cml comment create --publish --commit-sha HEAD report.md
         fi
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -67,7 +71,7 @@ jobs:
       if: steps.check_branch.outputs.branch_exists == 'false'
       run: |
         git add report.md confusion_matrix.png accuracy.txt
-        git commit -m "Add confusion matrix and accuracy results"
+        git commit -m "Update CML report"
         git push origin new-branch
 
     - name: Create Pull Request
