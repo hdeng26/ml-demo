@@ -52,7 +52,9 @@ jobs:
     
     - name: Publish confusion matrix
       run: |
-        cml-publish confusion_matrix.png --md >> report.md
+        echo "![Confusion Matrix](confusion_matrix.png)" > report.md
+        cat accuracy.txt >> report.md
+        cml comment report.md
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
