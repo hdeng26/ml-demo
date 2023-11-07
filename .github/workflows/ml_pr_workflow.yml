@@ -27,7 +27,7 @@ jobs:
            
     - name: Create CML report
       env:
-        REPO_TOKEN: ${{ secrets.TOKEN }}
+        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
       run: |
         ls
         cat accuracy.txt
