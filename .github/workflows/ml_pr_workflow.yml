@@ -40,6 +40,10 @@ jobs:
         git commit -m "Add evaluation report"
         git push origin new-evaluation-report
     
+    - name: Read report content
+      id: report_content
+      run: echo "::set-output name=report::$(cat report.md)"
+    
     - name: Create Pull Request
       uses: repo-sync/pull-request@v2
       with:
@@ -47,5 +51,5 @@ jobs:
         destination_branch: "main"
         github_token: ${{ secrets.GITHUB_TOKEN }}
         pr_title: "Model Evaluation Report"
-        pr_body: |
-          $(cat report.md)
+        pr_body: ${{ steps.report_content.outputs.report }}
+
