@@ -60,19 +60,27 @@ jobs:
     - name: CML report comment
       run: |
         if git ls-remote --heads origin new-branch | grep new-branch; then
-          cml comment update --publish --commit-sha HEAD --watermark-title="{workflow}" report.md
+          cml comment update --publish --watermark-title="{workflow}" report.md
         else
-          cml comment create --publish --commit-sha HEAD report.md
+          cml comment create --publish report.md
         fi
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Commit and push if new branch
-      if: steps.check_branch.outputs.branch_exists == 'false'
+    - name: Commit report.md
       run: |
-        git add report.md confusion_matrix.png accuracy.txt
-        git commit -m "Update CML report"
-        git push origin new-branch
+        git fetch
+        if git branch -r | grep 'origin/new-branch'; then
+          git checkout new-branch
+          git pull
+        else
+          git checkout -b new-branch
+        fi
+        git add report.md
+        git commit -m "Update report.md with model accuracy and confusion matrix"
+        git push --set-upstream origin new-branch
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Pull Request
       if: steps.check_branch.outputs.branch_exists == 'false'
