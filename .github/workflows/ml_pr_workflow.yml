@@ -59,11 +59,7 @@ jobs:
     
     - name: CML report comment
       run: |
-        if git ls-remote --heads origin new-branch | grep new-branch; then
-          cml comment update --publish --watermark-title="{workflow}" report.md
-        else
-          cml comment create --publish report.md
-        fi
+        cml comment create --publish report.md --commit-sha HEAD --update
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
