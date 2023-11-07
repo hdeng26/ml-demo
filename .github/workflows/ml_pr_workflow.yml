@@ -24,11 +24,12 @@ jobs:
     
     - name: Train and evaluate model
       run: python train_evaluate.py  # This should generate confusion_matrix.png and accuracy.txt
-    
+           
     - name: Create CML report
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cat accuracy.txt
         cat accuracy.txt > report.md
         echo '![](./confusion_matrix.png "Confusion Matrix")' >> report.md
         cml comment create report.md
