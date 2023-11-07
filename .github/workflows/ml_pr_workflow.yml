@@ -1,15 +1,13 @@
-name: ML Demo - Train, Evaluate, and PR
+name: ML Demo - Train and Evaluate
 
 on: [push]
 
 jobs:
-  train-and-create-pr:
+  build:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: iterative/setup-cml@v1
-    
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -20,17 +18,33 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install scikit-learn pandas matplotlib seaborn
-
     
     - name: Train and evaluate model
-      run: python train_evaluate.py  # This should generate confusion_matrix.png and accuracy.txt
-           
-    - name: Create CML report
-      env:
-        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
       run: |
-        ls
-        cat accuracy.txt
-        cat accuracy.txt > report.md
-        echo '![](./confusion_matrix.png "Confusion Matrix")' >> report.md
-        cml comment create report.md
+        python train_evaluate.py
+    
+    - name: Create report file
+      run: |
+        echo "## Model Evaluation Report" > report.md
+        echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+        echo "\`\`\`" >> report.md
+        cat accuracy.txt >> report.md
+        echo "\`\`\`" >> report.md
+    
+    - name: Push report to new branch
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git checkout -b new-evaluation-report
+        git add report.md confusion_matrix.png accuracy.txt
+        git commit -m "Add evaluation report"
+        git push origin new-evaluation-report
+    
+    - name: Create Pull Request
+      uses: repo-sync/pull-request@v2
+      with:
+        source_branch: "new-evaluation-report"
+        destination_branch: "main"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        title: "Model Evaluation Report"
+        body_path: "report.md"
