@@ -46,5 +46,6 @@ jobs:
         source_branch: "new-evaluation-report"
         destination_branch: "main"
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        title: "Model Evaluation Report"
-        body_path: "report.md"
+        pr_title: "Model Evaluation Report"
+        pr_body: |
+          $(cat report.md)
