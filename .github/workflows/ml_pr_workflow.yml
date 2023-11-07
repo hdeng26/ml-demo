@@ -7,7 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: iterative/setup-cml@v1
+    
+    - uses: actions/checkout@v3
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -16,71 +18,15 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install scikit-learn pandas matplotlib seaborn
-        npm install -g @dvcorg/cml
+        pip install -r requirements.txt
     
     - name: Train and evaluate model
-      run: python train_evaluate.py  # Make sure this generates confusion_matrix.png and accuracy.txt
+      run: python train_evaluate.py  # This should generate confusion_matrix.png and accuracy.txt
     
-    - name: Check for existing branch
-      id: check_branch
-      run: |
-        if git ls-remote --heads origin new-branch | grep new-branch; then
-          echo "Branch already exists"
-          echo "::set-output name=branch_exists::true"
-        else
-          echo "Branch does not exist"
-          echo "::set-output name=branch_exists::false"
-        fi
-    
-    - name: Checkout to branch
-      if: steps.check_branch.outputs.branch_exists == 'false'
-      run: git checkout -b new-branch
-    
-    - name: Add and commit confusion matrix image and accuracy result
-      run: |
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
-        git add confusion_matrix.png accuracy.txt
-        git commit -m "Add confusion matrix and accuracy results"
-    
-    - name: Push changes
-      if: steps.check_branch.outputs.branch_exists == 'false'
-      run: git push origin new-branch
-
-    - name: Write CML report
-      run: |
-        echo "## Model Accuracy Report" > report.md
-        echo "Overall Accuracy: $(cat accuracy.txt)" >> report.md
-        echo "![Confusion Matrix](./confusion_matrix.png)" >> report.md
+    - name: Create CML report
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: CML report comment
       run: |
-        cml comment create --publish report.md --commit-sha HEAD --update
-      env:
-        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Commit report.md
-      run: |
-        git fetch
-        if git branch -r | grep 'origin/new-branch'; then
-          git checkout new-branch
-          git pull
-        else
-          git checkout -b new-branch
-        fi
-        git add report.md
-        git commit -m "Update report.md with model accuracy and confusion matrix"
-        git push --set-upstream origin new-branch
-      env:
-        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create Pull Request
-      if: steps.check_branch.outputs.branch_exists == 'false'
-      uses: repo-sync/pull-request@v2
-      with:
-        destination_branch: "main"
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        cat accuracy.txt > report.md
+        echo '![](./confusion_matrix.png "Confusion Matrix")' >> report.md
+        cml comment create report.md
